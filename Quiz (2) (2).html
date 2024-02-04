@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Game</title>
+    <style>
+        body {
+            background-image: url("https://is.zobj.net/image-server/v1/images?r=Sa_DcsamzpuN6CWiq2hpaw0l-xSLS-rKCimF-ij9AjHD-ONZhR8bcSWRryh5Jo7ujFLGxr7y4RQ9HyGNFVw8HeO0EnJFm5Jnw_H4vt6j-s7KW8Smux8esNEfVoaj-g9WBVMSsgUjC0DyNrop0d1WqGnsB6VeUoMqoBOfkGX-3GuD9W62yymX7qVeWBmvnxZNce-4xmansJrm0apbLyHZ-hVKFrsLsKMGBj7yxRCMRcE0QMBjCU_3wroj4Iw");
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-position: center center;
+            background-color: #f8f8f8;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+
+        #quiz-container {
+            background-color: rgba(0, 0, 0, 0);
+            box-shadow: 0 0 10px rgb(243, 251, 3);
+            border-radius: 20px;
+            overflow: hidden;
+            max-width: 90%;
+            width: 100%;
+            position: relative;
+            color: #ffffff;
+            margin: 10px;
+        }
+
+        .question {
+            background-color: #0a0e0289;
+            color: #fff;
+            padding: 20px;
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .option {
+            margin: 10px;
+            padding: 15px;
+            width: 80%;
+            cursor: pointer;
+            border: 2px solid #ffffff;
+            border-radius: 10px;
+            transition: background-color 0.3s, color 0.3s;
+            font-size: 14px;
+        }
+
+        .option:hover {
+            background-color: #3498db;
+            color: #fff;
+        }
+
+        button:hover {
+            background-color: #2980b9;
+        }
+
+        #result {
+            margin-top: 20px;
+            font-size: 18px;
+            font-weight: bold;
+            color: #dbed14;
+        }
+
+        #timer {
+            position: right;
+            top: 10px;
+            right: 10px;
+            font-size: 14px;
+            color: #ffffff;
+        }
+
+        @media only screen and (max-width: 600px) {
+            .question {
+                font-size: 18px;
+            }
+
+            .option {
+                width: 90%;
+                padding: 10px;
+                font-size: 12px;
+            }
+
+            #result {
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="quiz-container">
+        <div id="question" class="question">Question Placeholder</div>
+        <div id="options" class="options"></div>
+        <div id="result"></div>
+        <!-- Place the timer element here -->
+        <div id="timer">Time: <span id="time"></span></div>
+    </div>
+
+    <script>
+    const msiQuestions = [
+        {
+            question: "Que signifie MSI ?",
+            options: ["Micro Star Industries", "Motherboard Systems Incorporated", "Micro-Star International", "Mainframe System Integrators"],
+            correctAnswer: "Micro-Star International"
+        },
+        {
+            question: "Où se trouve le siège social de la société MSI ?",
+            options: ["Taïwan", "Amérique", "Japon", "Chine"],
+            correctAnswer: "Taïwan"
+        },
+        {
+            question: "Quand a été fondée MSI (Micro-Star International) ?",
+            options: ["1986", "1990", "1995", "2000"],
+            correctAnswer: "1986"
+        },
+        {
+            question: "Quelle est la série de jeux populaire produite par MSI ?",
+            options: ["Inspiron", "Predator", "GL Series", "ThinkPad"],
+            correctAnswer: "GL Series"
+        },
+        {
+            question: "MSI est bien connu pour la fabrication de ____________ haute performance.",
+            options: ["Imprimantes", "Cartes graphiques", "Smartphones", "Ordinateurs portables"],
+            correctAnswer: "Cartes graphiques"
+        },
+        {
+            question: "Quelle est la marque de jeux associée aux ordinateurs portables gaming MSI ?",
+            options: ["Strix", "ROG", "Alienware", "Série GS"],
+            correctAnswer: "Série GS"
+        },
+        {
+            question: "Quelle est la marque de jeux associée aux ordinateurs portables gaming MSI ?",
+            options: ["MSI Dragon", "MSI GeForce", "MSI Mystic Light", "MSI Gaming Graphics Cards"],
+            correctAnswer: "MSI Gaming Graphics Cards"
+        },
+        {
+            question: "Quelle technologie de refroidissement avancée est souvent utilisée dans les produits MSI pour maintenir les températures basses ?",
+            options: ["HyperCool", "FrostCore", "ArcticFusion", "Twin Frozr"],
+            correctAnswer: "Twin Frozr"
+        },
+// Ajoutez plus de questions liées à MSI ici
+    ];
+
+    let currentQuestion = 0;
+    let score = 0;
+    let timeLimit = 15; // Time limit in seconds
+    let timer;
+
+    function loadQuestion() {
+        const quizContainer = document.getElementById("quiz-container");
+        const questionElement = document.getElementById("question");
+        const optionsElement = document.getElementById("options");
+        const resultElement = document.getElementById("result");
+
+        questionElement.textContent = msiQuestions[currentQuestion].question;
+        optionsElement.innerHTML = "";
+
+        msiQuestions[currentQuestion].options.forEach((option, index) => {
+            const optionElement = document.createElement("div");
+            optionElement.classList.add("option");
+            optionElement.textContent = option;
+            optionElement.onclick = () => selectAnswer(index);
+            optionsElement.appendChild(optionElement);
+        });
+
+        resultElement.textContent = "";
+
+        // Reset container position
+        quizContainer.style.transform = "translateX(0)";
+
+        // Reset timer and start countdown
+        clearInterval(timer);
+        startTimer();
+    }
+
+    function startTimer() {
+        let timeRemaining = timeLimit;
+        const timeElement = document.getElementById("time");
+        timeElement.textContent = timeRemaining;
+
+        timer = setInterval(() => {
+            timeRemaining--;
+            timeElement.textContent = timeRemaining;
+
+            if (timeRemaining <= 0) {
+                // Time is up, move to the next question
+                clearInterval(timer);
+                currentQuestion++;
+                if (currentQuestion < msiQuestions.length) {
+                    loadQuestion();
+                } else {
+                    showResult();
+                }
+            }
+        }, 1000);
+    }
+
+    function selectAnswer(selectedIndex) {
+        const selectedOption = msiQuestions[currentQuestion].options[selectedIndex];
+        const correctAnswer = msiQuestions[currentQuestion].correctAnswer;
+
+        clearInterval(timer); // Clear the timer when an answer is selected
+
+        if (selectedOption === correctAnswer) {
+            score++;
+        }
+
+        currentQuestion++;
+
+        if (currentQuestion < msiQuestions.length) {
+            // Slide to the next question
+            const quizContainer = document.getElementById("quiz-container");
+            quizContainer.style.transform = `translateX(-${currentQuestion * 100}%)`;
+
+            setTimeout(() => loadQuestion(), 300); // Wait for slide transition
+        } else {
+            showResult();
+        }
+    }
+
+    function checkAnswer() {
+        const selectedOption = document.querySelector(".option.selected");
+        if (selectedOption) {
+            const selectedIndex = Array.from(selectedOption.parentNode.children).indexOf(selectedOption);
+            selectAnswer(selectedIndex);
+        } else {
+            alert("Veuillez sélectionner une option avant de soumettre.");
+        }
+    }
+
+    function showResult() {
+        const resultElement = document.getElementById("result");
+        resultElement.textContent = `Votre score : ${score} sur ${msiQuestions.length}`;
+    }
+
+    loadQuestion();
+</script>
+
+</body>
+</html>
